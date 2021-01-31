@@ -84,12 +84,12 @@ public abstract class GeoEntityRenderer<T extends LivingEntity & IAnimatable> ex
 
 		float f = MathHelper.lerpAngleDegrees(partialTicks, entity.prevBodyYaw, entity.bodyYaw);
 		float f1 = MathHelper.lerpAngleDegrees(partialTicks, entity.prevHeadYaw, entity.headYaw);
-		float f2 = f1 - f;
+		float netHeadYaw = f1 - f;
 		if (shouldSit && entity.getVehicle() instanceof LivingEntity) {
 			LivingEntity livingentity = (LivingEntity) entity.getVehicle();
 			f = MathHelper.lerpAngleDegrees(partialTicks, livingentity.prevBodyYaw, livingentity.bodyYaw);
-			f2 = f1 - f;
-			float f3 = MathHelper.wrapDegrees(f2);
+			netHeadYaw = f1 - f;
+			float f3 = MathHelper.wrapDegrees(netHeadYaw);
 			if (f3 < -85.0F) {
 				f3 = -85.0F;
 			}
@@ -103,10 +103,10 @@ public abstract class GeoEntityRenderer<T extends LivingEntity & IAnimatable> ex
 				f += f3 * 0.2F;
 			}
 
-			f2 = f1 - f;
+			netHeadYaw = f1 - f;
 		}
 
-		float f6 = MathHelper.lerp(partialTicks, entity.prevPitch, entity.pitch);
+		float headPitch = MathHelper.lerp(partialTicks, entity.prevPitch, entity.pitch);
 		if (entity.getPose() == EntityPose.SLEEPING) {
 			Direction direction = entity.getSleepingDirection();
 			if (direction != null) {
@@ -130,6 +130,9 @@ public abstract class GeoEntityRenderer<T extends LivingEntity & IAnimatable> ex
 				limbSwingAmount = 1.0F;
 			}
 		}
+		entityModelData.headPitch = -headPitch;
+		entityModelData.netHeadYaw = -netHeadYaw;
+
 		AnimationEvent predicate = new AnimationEvent(entity, limbSwing, limbSwingAmount, partialTicks,
 				!(limbSwingAmount > -0.15F && limbSwingAmount < 0.15F), Collections.singletonList(entityModelData));
 		if (modelProvider instanceof IAnimatableModel) {
@@ -150,7 +153,7 @@ public abstract class GeoEntityRenderer<T extends LivingEntity & IAnimatable> ex
 		if (!entity.isSpectator()) {
 			for (GeoLayerRenderer<T> layerRenderer : this.layerRenderers) {
 				layerRenderer.render(stack, bufferIn, packedLightIn, entity, limbSwing, limbSwingAmount, partialTicks,
-						f7, f2, f6);
+						f7, netHeadYaw, headPitch);
 			}
 		}
 		if (FabricLoader.getInstance().isModLoaded("patchouli")) {
